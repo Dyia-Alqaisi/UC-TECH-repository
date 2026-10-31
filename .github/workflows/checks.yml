@@ -1,0 +1,22 @@
+name: Website checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP CGI and database extensions
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli php-cgi php-sqlite3 php-mysql
+      - name: Check PHP syntax
+        run: find public -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Check JavaScript syntax
+        run: node --check public/assets/app.js
+      - name: Test enquiry storage and dashboard controls
+        run: python3 verify.py

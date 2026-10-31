@@ -1,0 +1,11 @@
+uc-tech-config.php
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.log
+__pycache__/
+node_modules/
+playwright-report/
+test-results/
