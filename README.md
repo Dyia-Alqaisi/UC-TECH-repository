@@ -13,7 +13,7 @@ Source is ready for staging. Live hosting configuration, database setup, HTTPS a
 - Deployment instructions: `START-HERE.md`
 - Automated checks: `.github/workflows/checks.yml`
 
-Notification recipients are `info@uc-tech.cloud` and `H.jamal@uc-tech.com`. Mail is disabled by default until explicitly configured and tested. No SMS or WhatsApp provider is connected.
+Notification recipients are `info@uc-tech.cloud` and `h.jamal@uc-tech.cloud`. Mail is disabled by default until explicitly configured and tested. No SMS or WhatsApp provider is connected.
 
 Do not commit `uc-tech-config.php`, credentials, backup archives or visitor records. Put the completed configuration file outside the web document root.
 
