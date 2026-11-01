@@ -10,7 +10,7 @@ return [
     'admin_password_hash' => 'REPLACE_WITH_PASSWORD_HASH',
     // Generate with: php -r "echo bin2hex(random_bytes(32));"
     'app_key' => 'REPLACE_WITH_RANDOM_KEY',
-    'notification_emails' => ['info@uc-tech.cloud', 'H.jamal@uc-tech.com'],
+    'notification_emails' => ['info@uc-tech.cloud', 'h.jamal@uc-tech.cloud'],
     'mail_from' => 'info@uc-tech.cloud',
     // Enable only after testing the hosting account's mail delivery.
     'mail_enabled' => false,
