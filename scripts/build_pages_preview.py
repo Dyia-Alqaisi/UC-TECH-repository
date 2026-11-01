@@ -18,7 +18,7 @@ def build(base_path: str, destination: Path) -> None:
         relative = source.relative_to(SOURCE)
         if not source.is_file() or relative.parts[0] in {"api", "admin"}:
             continue
-        if source.suffix not in {".html", ".css", ".js", ".svg", ".png", ".webp", ".ttf", ".txt"}:
+        if source.suffix not in {".html", ".css", ".js", ".svg", ".png", ".webp", ".ttf", ".woff2", ".txt"}:
             continue
         if relative.as_posix() == "robots.txt":
             continue
@@ -38,7 +38,7 @@ def build(base_path: str, destination: Path) -> None:
                 text = text.replace('<button disabled class="menu-toggle"', '<button class="menu-toggle"')
                 text = text.replace('<button disabled class="solutions-toggle"', '<button class="solutions-toggle"')
             target.write_text(text, encoding="utf-8", newline="")
-        elif relative.as_posix() == "assets/app.js":
+        elif relative.parent.as_posix() == "assets" and re.fullmatch(r'app(?:\.[0-9a-f]{12})?\.js', source.name):
             text = source.read_text(encoding="utf-8")
             original = "const form = document.getElementById('consultation');"
             assert original in text, "Review form initialization before publishing."
