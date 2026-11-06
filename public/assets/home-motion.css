@@ -1,0 +1,59 @@
+.service-map .orbit,
+.service-map .connectors > path {
+  animation: none;
+}
+
+.service-map .connectors {
+  pointer-events: none;
+}
+
+.service-map .connectors > path {
+  stroke-dasharray: none;
+  opacity: .45;
+}
+
+.service-map.has-motion-routes .connectors > path {
+  display: none;
+}
+
+.service-map .motion-route {
+  animation: none;
+  stroke: #ffad6f;
+  stroke-width: 2;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+  opacity: .55;
+}
+
+.service-map.is-scroll-linked .motion-route {
+  opacity: 1;
+}
+
+.service-map .orbit::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid #ffc08f;
+  box-shadow: 0 0 24px #ff6a0080, inset 0 0 16px #ff6a0040;
+  opacity: var(--orbit-highlight, 0);
+  pointer-events: none;
+}
+
+@media (min-width: 761px) and (prefers-reduced-motion: no-preference) {
+  .service-map.is-scroll-linked .motion-routes {
+    filter: drop-shadow(0 0 5px #ff6a00);
+  }
+}
+
+@media (max-width: 760px) {
+  .service-map .orbit::after {
+    box-shadow: inset 0 0 9px #ff6a0050;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-map .orbit {
+    transition: none;
+  }
+}
