@@ -20,73 +20,110 @@
 
   const hero = document.querySelector(".home-hero");
 
-  /* ---------- 1. Hero light streams ---------- */
-  function lightStreams() {
-    if (!hero) return;
+  /* ---------- 1. Hero light streams (fluid silk field) ---------- */
+  // Every line samples one shared, slowly evolving flow field, so neighbouring lines
+  // bend together like silk instead of moving as separate rigid sine waves.
+  function lightStreams(host) {
+    if (!host) return;
     const canvas = document.createElement("canvas");
     canvas.className = "light-streams";
     canvas.setAttribute("aria-hidden", "true");
-    hero.prepend(canvas);
+    host.prepend(canvas);
+    host.classList.add("has-streams");
     const ctx = canvas.getContext("2d");
-    let w = 0, h = 0, dpr = 1, running = false, raf = 0;
-    const mouse = { x: -9999, y: -9999, k: 0, tk: 0 };
+    let w = 0, h = 0, dpr = 1, running = false, raf = 0, last = 0;
+    const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, k: 0, tk: 0 };
+    const ripples = []; // expanding rings of displacement from cursor movement
 
-    const COUNT = innerWidth < 760 ? 12 : 22;
-    const lines = Array.from({ length: COUNT }, (_, i) => ({
-      base: i / COUNT,
-      amp: 0.03 + Math.random() * 0.06,
-      freq: 2 + Math.random() * 2.5,
-      speed: 0.15 + Math.random() * 0.35,
-      phase: Math.random() * Math.PI * 2,
-      tilt: 0.55 + Math.random() * 0.5,
-      width: 0.6 + Math.random() * 1.4,
-      dash: 80 + Math.random() * 220,
-      gap: 300 + Math.random() * 600,
-      dashSpeed: 60 + Math.random() * 140,
-      alpha: 0.25 + Math.random() * 0.45,
-    }));
+    const COUNT = innerWidth < 760 ? 14 : 26;
+    const lines = Array.from({ length: COUNT }, (_, i) => {
+      const u = i / (COUNT - 1);
+      return {
+        base: u,
+        width: 0.5 + Math.random() * 1.3,
+        alpha: 0.22 + Math.random() * 0.5,
+        breathe: Math.random() * Math.PI * 2,
+        dash: 60 + Math.random() * 200,
+        gap: 260 + Math.random() * 520,
+        dashSpeed: 50 + Math.random() * 130,
+        lag: Math.random() * 0.6, // each line responds a little later -> fluid feel
+      };
+    });
 
     function resize() {
-      const r = hero.getBoundingClientRect();
+      const r = host.getBoundingClientRect();
       dpr = Math.min(devicePixelRatio || 1, 1.5);
       w = r.width; h = r.height;
       canvas.width = w * dpr; canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function pathFor(l, t) {
-      ctx.beginPath();
-      const step = 16;
-      for (let x = -40; x <= w + 40; x += step) {
+    // shared flow field: smooth, slowly drifting frequencies
+    function field(x, b, t) {
+      const f1 = 0.0026 + Math.sin(t * 0.07) * 0.0006;
+      const f2 = 0.0055 + Math.sin(t * 0.05 + 1.3) * 0.0012;
+      return Math.sin(x * f1 + t * 0.42 + b * 2.4) * 1.0
+        + Math.sin(x * f2 - t * 0.31 + b * 4.1) * 0.55
+        + Math.sin(x * 0.011 + t * 0.73 + b * 7.0) * 0.18;
+    }
+
+    const pts = [];
+    function buildPath(l, t) {
+      const step = 12;
+      const amp = h * (0.05 + 0.025 * Math.sin(t * 0.35 + l.breathe)); // breathing
+      const tl = t - l.lag;
+      pts.length = 0;
+      for (let x = -60; x <= w + 60; x += step) {
         const u = x / w;
-        // Streams sweep from lower-left to upper-right, denser on the right like the brand artwork
-        let y = h * (1.08 - l.base * 0.62 - u * 0.62 * l.tilt)
-          + Math.sin(u * l.freq * Math.PI + t * l.speed + l.phase) * l.amp * h;
+        // sweep lower-left -> upper-right, arcing like the brand artwork
+        let y = h * (1.1 - l.base * 0.7) - u * h * (0.55 + l.base * 0.25) + u * u * h * 0.22;
+        // travelling bulge that rolls along each line
+        const roll = Math.exp(-Math.pow((u - ((tl * 0.06 + l.breathe) % 1.4 - 0.2)) * 5, 2));
+        y += field(x, l.base, tl) * amp + roll * amp * 0.9;
+        // cursor: soft gaussian pull + expanding ripples
         const dx = x - mouse.x, dy = y - mouse.y;
-        y += (mouse.y - y) * 0.28 * mouse.k * Math.exp(-(dx * dx + dy * dy) / 52000);
-        x === -40 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        y += (mouse.y - y) * 0.22 * mouse.k * Math.exp(-(dx * dx + dy * dy) / 60000);
+        for (const r of ripples) {
+          const d = Math.hypot(x - r.x, y - r.y) - r.r;
+          y += Math.sin(d * 0.06) * r.a * Math.exp(-(d * d) / 3000);
+        }
+        pts.push(x, y);
       }
+      // smooth curve through points (midpoint quadratic)
+      ctx.beginPath();
+      ctx.moveTo(pts[0], pts[1]);
+      for (let i = 2; i < pts.length - 2; i += 2) {
+        const mx = (pts[i] + pts[i + 2]) / 2, my = (pts[i + 1] + pts[i + 3]) / 2;
+        ctx.quadraticCurveTo(pts[i], pts[i + 1], mx, my);
+      }
+      ctx.lineTo(pts[pts.length - 2], pts[pts.length - 1]);
     }
 
     function frame(ms) {
-      const t = ms / 1000;
-      mouse.k += (mouse.tk - mouse.k) * 0.06;
+      const t = ms / 1000, dt = Math.min(0.05, t - last || 0.016);
+      last = t;
+      mouse.k += (mouse.tk - mouse.k) * 0.04;
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.r += dt * 260; r.a *= 0.965;
+        if (r.a < 0.3) ripples.splice(i, 1);
+      }
       ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = "lighter";
       ctx.lineCap = "round";
       for (const l of lines) {
-        pathFor(l, t);
+        buildPath(l, t);
         ctx.setLineDash([]);
         ctx.lineWidth = l.width;
-        ctx.strokeStyle = `rgba(255,106,0,${l.alpha * 0.22})`;
+        ctx.strokeStyle = `rgba(255,106,0,${l.alpha * 0.2})`;
         ctx.stroke();
         ctx.setLineDash([l.dash, l.gap]);
         ctx.lineDashOffset = -t * l.dashSpeed;
-        ctx.lineWidth = l.width * 3;
-        ctx.strokeStyle = `rgba(255,106,0,${l.alpha * 0.35})`;
+        ctx.lineWidth = l.width * 3.2;
+        ctx.strokeStyle = `rgba(255,106,0,${l.alpha * 0.32})`;
         ctx.stroke();
         ctx.lineWidth = l.width;
-        ctx.strokeStyle = `rgba(255,205,160,${l.alpha})`;
+        ctx.strokeStyle = `rgba(255,210,170,${l.alpha})`;
         ctx.stroke();
       }
       raf = requestAnimationFrame(frame);
@@ -96,13 +133,18 @@
     const stop = () => { running = false; cancelAnimationFrame(raf); };
 
     resize();
-    new ResizeObserver(resize).observe(hero);
-    new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(hero);
-    hero.addEventListener("pointermove", (e) => {
-      const r = hero.getBoundingClientRect();
+    new ResizeObserver(resize).observe(host);
+    new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(host);
+    host.addEventListener("pointermove", (e) => {
+      const r = host.getBoundingClientRect();
       mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.tk = 1;
+      const moved = Math.hypot(mouse.x - mouse.px, mouse.y - mouse.py);
+      if (moved > 70 && ripples.length < 6) {
+        ripples.push({ x: mouse.x, y: mouse.y, r: 0, a: Math.min(18, moved * 0.12) });
+        mouse.px = mouse.x; mouse.py = mouse.y;
+      }
     }, { passive: true });
-    hero.addEventListener("pointerleave", () => { mouse.tk = 0; });
+    host.addEventListener("pointerleave", () => { mouse.tk = 0; });
     requestAnimationFrame(() => canvas.classList.add("is-on"));
   }
 
@@ -293,7 +335,8 @@
     });
   }
 
-  lightStreams();
+  lightStreams(hero);
+  lightStreams(document.querySelector(".about-hero"));
   heroIntro();
   innerPageIntro();
   dataPackets();
