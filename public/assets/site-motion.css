@@ -1,0 +1,103 @@
+/* UC-TECH motion layer — additive to styles.css, safe without JS. */
+
+/* ---------- Hero light streams ---------- */
+.home-hero { overflow: hidden; }
+.home-hero .light-streams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.home-hero .light-streams.is-on { opacity: 1; }
+.home-hero > .hero-inner,
+.home-hero > .hero-foot { position: relative; z-index: 1; }
+
+/* ---------- Headline ---------- */
+/* styles.css colours every h1 span orange (the dots); keep the words white */
+.hero-copy h1 .word { color: inherit; display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
+.hero-copy h1 .word > i { display: inline-block; font-style: normal; }
+.hero-copy h1 > span { display: inline-block; }
+
+/* ---------- Orbits: pop + data packets ---------- */
+.service-map .orbit { scale: var(--pop, 1); }
+.service-map .packets {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.service-map .packet { fill: #ffd2ad; filter: drop-shadow(0 0 4px #ff6a00) drop-shadow(0 0 10px #ff6a00); }
+.service-map .orbit.is-ping { box-shadow: 0 0 45px #ff6a00a0, inset 0 0 18px #ff6a0050; transition: box-shadow .15s; }
+
+/* ---------- Cursor glow on cards ---------- */
+.service-card,
+.partner-card,
+.cta-panel { position: relative; isolation: isolate; }
+.service-card::before,
+.partner-card::before,
+.cta-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), #ff6a0024, transparent 60%);
+}
+.service-card::after,
+.partner-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s ease;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), #ff8a3d, transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.service-card:hover::before, .service-card:hover::after,
+.partner-card:hover::before, .partner-card:hover::after,
+.cta-panel:hover::before { opacity: 1; }
+
+/* ---------- Icons ---------- */
+.service-card .card-top .icon { overflow: visible; }
+
+/* ---------- Approach: scroll progress line ---------- */
+.approach { position: relative; }
+.approach .progress-line {
+  display: block;
+  height: 2px;
+  margin: 18px 0 34px;
+  background: linear-gradient(90deg, #ff6a00, #ffad6f 60%, transparent);
+  transform-origin: left;
+  transform: scaleX(var(--progress, 1));
+}
+
+/* ---------- CTA top border draws in ---------- */
+.cta-panel { border-top-color: transparent; }
+.cta-panel .cta-line {
+  position: absolute;
+  inset: -3px 0 auto 0;
+  height: 3px;
+  background: var(--orange, #ff6a00);
+  transform-origin: left;
+  transform: scaleX(var(--progress, 1));
+  box-shadow: 0 0 18px #ff6a0080;
+}
+
+/* ---------- Magnetic buttons ---------- */
+.button.is-magnetic { transition: background .18s, translate .25s cubic-bezier(.2, .7, .2, 1); translate: var(--tx, 0) var(--ty, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero .light-streams { display: none; }
+  .button.is-magnetic { translate: none; }
+}
