@@ -18,9 +18,9 @@
 
 /* ---------- Headline ---------- */
 /* styles.css colours every h1 span orange (the dots); keep the words white */
-.hero-copy h1 .word { color: inherit; display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
-.hero-copy h1 .word > i { display: inline-block; font-style: normal; }
-.hero-copy h1 > span { display: inline-block; }
+main h1 .word { color: inherit; display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
+main h1 .word > i { display: inline-block; font-style: normal; }
+main h1 .dot { display: inline-block; color: var(--orange, #ff6a00); }
 
 /* ---------- Orbits: pop + data packets ---------- */
 .service-map .orbit { scale: var(--pop, 1); }
@@ -38,9 +38,12 @@
 /* ---------- Cursor glow on cards ---------- */
 .service-card,
 .partner-card,
+.feature,
 .cta-panel { position: relative; isolation: isolate; }
 .service-card::before,
 .partner-card::before,
+.feature::before,
+.provider-card::before,
 .cta-panel::before {
   content: "";
   position: absolute;
@@ -66,6 +69,7 @@
 }
 .service-card:hover::before, .service-card:hover::after,
 .partner-card:hover::before, .partner-card:hover::after,
+.feature:hover::before, .provider-card:hover::before,
 .cta-panel:hover::before { opacity: 1; }
 
 /* ---------- Icons ---------- */
@@ -100,4 +104,24 @@
 @media (prefers-reduced-motion: reduce) {
   .home-hero .light-streams { display: none; }
   .button.is-magnetic { translate: none; }
+}
+
+/* ---------- Service-page hero scenes (page-scenes.js) ---------- */
+.cloud-geographic-hero.has-scene { position: relative; overflow: hidden; }
+.cloud-geographic-hero > .hero-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 85%);
+          mask-image: linear-gradient(180deg, #000 55%, transparent 85%);
+}
+.cloud-geographic-hero > .hero-scene.is-on { opacity: 1; }
+.cloud-geographic-hero.has-scene > :not(.hero-scene) { position: relative; z-index: 1; }
+@media (max-width: 760px) {
+  .cloud-geographic-hero > .hero-scene.is-on { opacity: .55; }
 }

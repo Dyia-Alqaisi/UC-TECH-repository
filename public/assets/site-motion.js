@@ -8,7 +8,7 @@
 
   /* ---------- Cursor glow (works even with reduced motion: no movement) ---------- */
   document.addEventListener("pointermove", (e) => {
-    const card = e.target.closest?.(".service-card, .partner-card, .cta-panel");
+    const card = e.target.closest?.(".service-card, .partner-card, .cta-panel, .feature, .provider-card");
     if (!card) return;
     const r = card.getBoundingClientRect();
     card.style.setProperty("--mx", `${e.clientX - r.left}px`);
@@ -107,23 +107,48 @@
   }
 
   /* ---------- 2. Headline + hero intro ---------- */
+  // Wrap each text line of an h1 so it can rise in; the orange dot spans stay as they are.
+  function splitHeadline(h1) {
+    [...h1.childNodes].forEach((n) => {
+      if (n.nodeType !== 3 || !n.textContent.trim()) return;
+      const word = document.createElement("span");
+      word.className = "word";
+      const inner = document.createElement("i");
+      inner.textContent = n.textContent;
+      word.appendChild(inner);
+      // keep the orange dot glued to its word so it never wraps onto its own line
+      const next = n.nextSibling;
+      if (next?.nodeType === 1 && next.tagName === "SPAN" && next.textContent.trim().length <= 2) {
+        next.classList.add("dot");
+        inner.appendChild(next); // inside <i>: an inline-block that wraps would push it to a new line
+      }
+      n.replaceWith(word);
+    });
+  }
+
+  function innerPageIntro() {
+    if (hero) return;
+    const h1 = document.querySelector("main h1");
+    const section = h1?.closest("section");
+    if (!h1 || !section) return;
+    splitHeadline(h1);
+    const extras = section.querySelectorAll(":scope .breadcrumb, :scope .eyebrow, :scope h1 ~ p, :scope p, :scope .button");
+    const intro = [...extras].filter((el) => !el.closest(".geographic-panel, .service-explorer") && el.getBoundingClientRect().top < innerHeight);
+    gsap.timeline({ defaults: { ease: "power3.out" } })
+      .from(h1.querySelectorAll(".word > i"), { yPercent: 110, duration: 1, stagger: 0.12 })
+      .from(h1.querySelectorAll(".dot"), { scale: 0, opacity: 0, duration: 0.6, ease: "back.out(4)", transformOrigin: "50% 80%" }, "-=0.5")
+      .from(intro, { y: 18, opacity: 0, duration: 0.8, stagger: 0.06 }, 0.1);
+  }
+
   function heroIntro() {
     if (!hero) return;
     const h1 = hero.querySelector(".hero-copy h1");
-    if (h1) {
-      [...h1.childNodes].forEach((n) => {
-        if (n.nodeType !== 3 || !n.textContent.trim()) return;
-        const word = document.createElement("span");
-        word.className = "word";
-        word.innerHTML = `<i>${n.textContent}</i>`;
-        n.replaceWith(word);
-      });
-    }
+    if (h1) splitHeadline(h1);
     const orbits = hero.querySelectorAll(".orbit");
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
     tl.from(".hero-copy .eyebrow", { y: 16, opacity: 0, duration: 0.7 })
       .from(".hero-copy h1 .word > i", { yPercent: 110, duration: 1, stagger: 0.14 }, "-=0.4")
-      .from(".hero-copy h1 > span:not(.word)", { scale: 0, opacity: 0, duration: 0.6, ease: "back.out(4)", stagger: 0.14, transformOrigin: "50% 80%" }, "-=0.7")
+      .from(".hero-copy h1 .dot", { scale: 0, opacity: 0, duration: 0.6, ease: "back.out(4)", stagger: 0.14, transformOrigin: "50% 80%" }, "-=0.7")
       .from(".hero-copy p, .hero-copy .actions", { y: 22, opacity: 0, duration: 0.8, stagger: 0.1 }, "-=0.5")
       .from(".map-brand", { opacity: 0, duration: 0.8 }, 0.3)
       .fromTo(orbits, { "--pop": 0.4, opacity: 0 }, { "--pop": 1, opacity: 1, duration: 0.9, ease: "back.out(2)", stagger: 0.12 }, 0.45)
@@ -210,6 +235,7 @@
 
   /* ---------- 5. Section reveals ---------- */
   function reveals() {
+    if (!hero) return; // other pages keep app.js reveals
     // app.js has a simple CSS reveal; hand these elements over to GSAP so the two never fight.
     document.querySelectorAll("main .reveal-ready").forEach((el) => el.classList.remove("reveal-ready", "is-visible"));
     const up = (targets, trigger, opts = {}) => gsap.from(targets, {
@@ -269,6 +295,7 @@
 
   lightStreams();
   heroIntro();
+  innerPageIntro();
   dataPackets();
   iconDraw();
   reveals();
