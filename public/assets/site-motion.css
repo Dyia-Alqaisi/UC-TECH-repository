@@ -1,8 +1,8 @@
 /* UC-TECH motion layer — additive to styles.css, safe without JS. */
 
 /* ---------- Hero light streams ---------- */
-.home-hero { overflow: hidden; }
-.home-hero .light-streams {
+.has-streams { overflow: hidden; }
+.has-streams > .light-streams {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -12,9 +12,8 @@
   opacity: 0;
   transition: opacity 1.2s ease;
 }
-.home-hero .light-streams.is-on { opacity: 1; }
-.home-hero > .hero-inner,
-.home-hero > .hero-foot { position: relative; z-index: 1; }
+.has-streams > .light-streams.is-on { opacity: 1; }
+.has-streams > :not(.light-streams) { position: relative; z-index: 1; }
 
 /* ---------- Headline ---------- */
 /* styles.css colours every h1 span orange (the dots); keep the words white */
@@ -102,7 +101,7 @@ main h1 .dot { display: inline-block; color: var(--orange, #ff6a00); }
 .button.is-magnetic { transition: background .18s, translate .25s cubic-bezier(.2, .7, .2, 1); translate: var(--tx, 0) var(--ty, 0); }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero .light-streams { display: none; }
+  .light-streams { display: none; }
   .button.is-magnetic { translate: none; }
 }
 
